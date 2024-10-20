@@ -5,7 +5,7 @@
 database create_empty_database(int n){
     database db = malloc(sizeof(struct database_s));
     db->size = n;
-    db->datas = malloc(n * sizeof(struct classified_data_s));
+    db->datas = malloc(n * sizeof(classified_data));
     return db;
 }
 

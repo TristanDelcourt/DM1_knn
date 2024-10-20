@@ -1,5 +1,12 @@
 {
     "files.associations": {
-        "chained_list.h": "c"
+        "candidats.h": "c",
+        "vector": "c",
+        "database.h": "c",
+        "knn.h": "c",
+        "vector.h": "c",
+        "stdlib.h": "c",
+        "jeu_quadrant.h": "c",
+        "random": "c"
     }
 }

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "chained_list.h"
+#include "candidats.h"
 #include "vector.h"
 #include "database.h"
 
@@ -43,7 +43,7 @@ int insertion_list(candidats* pl, int r, int k, database db, int i, vector input
 
     candidats next_ = *pl;
     candidats prev_ = NULL;
-    while(dist < next_->distance){
+    while(next_ != NULL && dist < next_->distance){
         prev_ = next_;
         next_ = next_->next;
     }

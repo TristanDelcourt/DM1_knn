@@ -2,13 +2,14 @@
 
 #include "vector.h"
 
-struct classified_data_s {
+typedef struct classified_data_s {
     vector vector ; /* le vecteur */
     int classe;     /* sa classe */
-};
+} classified_data;
+
 struct database_s {
     int size ;                        /* taille du jeu de données */
-    struct classified_data_s* datas ; /* tableau des données classifiées */
+    classified_data* datas ; /* tableau des données classifiées */
 };
 typedef struct database_s* database;
 
