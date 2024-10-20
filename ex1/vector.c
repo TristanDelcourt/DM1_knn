@@ -7,7 +7,7 @@
 vector create_zero_vector(int n){
     vector v = malloc(sizeof(struct vector_s));
     v->taille = n;
-    v->content = (unsigned char*)malloc(n * sizeof(unsigned char));
+    v->content = malloc(n * sizeof(unsigned char));
     for(int i = 0; i < n; i++){
         v->content[i] = 0;
     }

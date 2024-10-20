@@ -75,7 +75,7 @@ int insertion_list(candidats* pl, int r, int k, database db, int i, vector input
     else{
         candidats tmp = *pl;
         *pl = tmp->next;
-        delete_list(tmp);
+        free(tmp);
         return k;
     }
 

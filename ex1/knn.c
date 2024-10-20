@@ -49,10 +49,13 @@ int classe_majoritaire(database db, candidats lc, int r){
         }
     }
 
+    free(occ);
     return i_max;
 }
 
 int classify(database db, int k, vector input){
     candidats lc = pproche(db, k, input);
-    return classe_majoritaire(db, lc, k);
+    int c = classe_majoritaire(db, lc, k);
+    delete_list(lc);
+    return c;
 }
