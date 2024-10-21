@@ -33,14 +33,15 @@ void free_matrix(int** m){
 // MAIN
 int main(void){
     nb_classe_max = 10;
-    database learn_db = create_empty_database(10000);
-    database test_db = create_empty_database(1000);
+    database learn_db, test_db;
     mnist_input(10000, &learn_db, 1000, &test_db);
     int** m = matrix(nb_classe_max, nb_classe_max);
     for(int i = 0; i<1000; i++){
         int c = classify(learn_db, 3, test_db->datas[i].vector);
         m[c][test_db->datas[i].classe]++;
     }
+    delete_database(learn_db);
+    delete_database(test_db);
     print_matric(m);
     free_matrix(m);
 }

@@ -1,6 +1,3 @@
-open Random
-open Graphics
-
 type vector = float array
 
 let f_cmp i = fun (x:vector) (y:vector) -> x.(i) <= y.(i)
@@ -42,7 +39,6 @@ let rec selection t d f r cmp =
   end
   else
     t.(d)
-  
 
 type kd_tree =
   | Vide
@@ -51,14 +47,14 @@ type kd_tree =
 let rec build_tree (data: vector array) (k: int) = 
   let n = Array.length data in
   let rec aux d f i = 
-    if d >= f then 
-      Vide
-    else begin
-      let v = selection data d f ((f-d)/2) (f_cmp i) in
-      let ag = aux d ((f-d)/2 - 1) ((i+1) mod k) in
-      let ad = aux ((f-d)/2 + 1) f ((i+1) mod k) in
-      Node(i+1, v, ag, ad)
+    if d <= f then begin
+      let centre = ((f+d)/2) in
+      let v = selection data d f centre (f_cmp i) in
+      let ag = aux d (centre - 1) ((i+1) mod k) in
+      let ad = aux (centre + 1) f ((i+1) mod k) in
+      Node(i, v, ag, ad)
     end
+    else Vide
   in  
   aux 0 (n-1) 0
 
@@ -108,11 +104,13 @@ let draw_kd_tree (t: kd_tree) =
   draw_kd_tree_aux t 0 0 cx cy
 
 let main_exemple () =
+  Random.self_init ();
   let nb_points = 50 in
   let t = genere_jeu_donnes nb_points in
   let kd_tree = build_tree t 2 in         (* TODO : remplacer ici par votre fonction de génération d'un arbre k dimensionel *)
   Graphics.open_graph " 1000x1000";
   draw_kd_tree kd_tree;
   Graphics.loop_at_exit [] (fun _ -> ())
+
 
 let () = main_exemple ()
