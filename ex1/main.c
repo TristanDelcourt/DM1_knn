@@ -30,7 +30,7 @@ void free_matrix(int** m){
     free(m);
 }
 
-// MAIN
+// MAIN, compile with: gcc main.c candidats.c database.c knn.c lecture_mnist.c vector.c -Ofast -lm -Wall -Wextra -o main
 int main(void){
     nb_classe_max = 10;
     database learn_db, test_db;
