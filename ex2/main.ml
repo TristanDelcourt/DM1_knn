@@ -119,71 +119,120 @@ let trouver_meilleur_candidats (l: vector array) (v: vector) =
     else acc
   ) (l.(0)) l
   
-let rec pp_voisin (t: kd_tree) (v: vector) (k: int) = match t with
+(*trouve le plus proche voisin de v dans t*)
+let rec unpp_voisin (t: kd_tree) (v: vector) = match t with
   | Vide -> [||]
   | Node(dim, v_sep, g, d) ->
       if v.(dim) <= v_sep.(dim) then begin
-        let vg = pp_voisin g v k in
+        let vg = unpp_voisin g v in
         if vg != [||] && dist vg v <= v_sep.(dim) -. v.(dim) then
           vg
         else begin
-          let vd = pp_voisin d v k in
+          let vd = unpp_voisin d v in
           trouver_meilleur_candidats [|v_sep; vg; vd|] v
         end
       end
       else begin
-        let vd = pp_voisin d v k in
+        let vd = unpp_voisin d v in
         if vd != [||] && dist vd v <= v.(dim) -. v_sep.(dim) then
           vd
         else begin
-          let vg = pp_voisin g v k in
+          let vg = unpp_voisin g v in
           trouver_meilleur_candidats [|v_sep; vg; vd|] v
         end
       end
 
+let print_vector_list (l: vector list) =
+  List.iter (fun x -> Printf.printf "(%f, %f)\n" x.(0) x.(1)) l
 
+(* insert x dans l tel que l est de taille inferieure a k et l décroissante par ordre de distance a v*)
+let insert_sorted (v: vector) (x: vector) (l: vector list) (k: int) : vector list =
+  if dist x v > dist (List.hd l) v && List.length l = k then
+    l
+  else
+
+  let rec aux acc1 acc2 = match acc2 with
+    | [] -> 
+      if List.length l = k then
+        List.tl (List.rev (x::acc1))
+      else
+        (List.rev (x::acc1))
+    | y::q -> 
+    if dist x v > dist y v then
+      if List.length l = k then
+        List.tl (List.rev (x::acc1)) @ acc2
+      else
+        (List.rev (x::acc1)) @ acc2
+    else
+      aux (y::acc1) q
+
+  in
+  aux [] l
+
+(* trouve les k plus proches candidats de v parmis v1, les vecteurs de l1 et de l2*)
+let trouver_meilleur_candidats_k (v: vector) (v1: vector) (l1: vector list) (l2: vector list) (k: int) =
+  if k = 0 then []
+  else begin
+  let p = List.fold_left (fun acc x -> insert_sorted v x acc k) [v1] l1 in
+  let q = List.fold_left (fun acc x -> insert_sorted v x acc k) p l2 in
+  print_vector_list q;
+  Printf.printf "%d : %d : %d\n---\n" (1 + List.length l1 + List.length l2) k (List.length q);
+  q
+  end
+
+(* trouve les k plus proches voisins de v dans l'arbre t*)
 let rec pp_voisin_k (t: kd_tree) (v: vector) (k: int) = 
-  if k = 0 then [[||]]
-  else match t with
-  | Vide -> [[||]]
+  if k = 0 then []
+  else begin
+  match t with
+  | Vide -> []
   | Node(dim, v_sep, g, d) ->
       if v.(dim) <= v_sep.(dim) then begin
-        let vg = pp_voisin g v k in
-        let s, sur, pas_sur = Array.fold_left (fun acc x -> 
-          if x == [||] then acc else
+        let vg = pp_voisin_k g v k in
+        let s, sur, pas_sur = List.fold_left (fun acc x -> 
           let s, sur, pas_sur = acc in
-          if dist x v < v_sep.(dim) -. v.(dim) then ((s+1), (x::sur), pas_sur)
+          if dist x v <= v_sep.(dim) -. v.(dim) then ((s+1), (x::sur), pas_sur)
           else (s, sur, (x::pas_sur))) (0, [], []) vg in
-        let vd = pp_voisin d v (k-s) in
-        le
-        sur 
+        let vd = pp_voisin_k d v (k-s) in
+        (sur @ (trouver_meilleur_candidats_k v v_sep pas_sur vd (k-s)))
       end
       else begin
-      let vd = pp_voisin g v k in
-      let s = Array.fold_left (fun acc x -> 
-        if x == [||] then acc
-        else if dist x v < v.(dim) -. v_sep.(dim) then (acc+1)
-        else acc) 0 vd in
-      let vg = pp_voisin g v (k-s) in
-      trouver_meilleur_candidats_k (Array.append (Array.append vd vg) v_sep) v k
+      let vd = pp_voisin_k d v k in
+      let s, sur, pas_sur = List.fold_left (fun acc x -> 
+        let s, sur, pas_sur = acc in
+        if dist x v <= v.(dim) -. v_sep.(dim) then ((s+1), (x::sur), pas_sur)
+        else (s, sur, (x::pas_sur))) (0, [], []) vd in
+      let vg = pp_voisin_k g v (k-s) in
+      (sur @ (trouver_meilleur_candidats_k v v_sep pas_sur vg (k-s)))
     end
+  end
 
+let colour_voisins (voisins: vector list) (v: vector) =
+  Graphics.set_color Graphics.blue;
+  List.iter (fun x ->
+    Graphics.fill_circle (to_x x.(0)) (to_y x.(1)) 5
+  ) voisins;
+  let max = List.fold_left (fun acc x -> if dist x v > acc then dist x v else acc) (dist (List.hd voisins) v) voisins in
+  Graphics.draw_circle (to_x v.(0)) (to_y v.(1)) (int_of_float (float_of_int cx *. max))
 
 let main_exemple () =
   Random.self_init ();
-  let nb_points = 50 in
+  let nb_points = 500 in
   let t = genere_jeu_donnes nb_points in
   let kd_tree = build_tree t 2 in         (* TODO : remplacer ici par votre fonction de génération d'un arbre k dimensionel *)
   Graphics.open_graph " 1000x1000";
   draw_kd_tree kd_tree;
   let v = Array.init 2 (fun _ -> Random.float 1.) in
-  let voisin = pp_voisin kd_tree v 1 in
+  let voisins = pp_voisin_k kd_tree v 5 in
+  Printf.printf "Nb voisins : %d\n" (List.length voisins);
+  print_vector_list voisins;
+
   Graphics.set_color Graphics.red;
   Graphics.fill_circle (to_x v.(0)) (to_y v.(1)) 5;
-  Graphics.set_color Graphics.blue;
-  Graphics.fill_circle (to_x voisin.(0)) (to_y voisin.(1)) 5;
+  (*Graphics.fill_circle (to_x voisin.(0)) (to_y voisin.(1)) 5;*)
+  colour_voisins voisins v;
   Graphics.set_color Graphics.green;
-  Graphics.draw_circle (to_x v.(0)) (to_y v.(1)) (int_of_float (float_of_int cx *.  (dist v voisin)));
+  (*Graphics.draw_circle (to_x v.(0)) (to_y v.(1)) (int_of_float (float_of_int cx *.  (dist v voisin)));*)
   Graphics.loop_at_exit [] (fun _ -> ())
 
 
